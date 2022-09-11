@@ -2,6 +2,7 @@ import pathlib
 import re
 import pandas as pd
 import friendly_traceback as ft
+from friendly_traceback.runtime_errors.key_error import parser
 
 # We want to focus on the code entered by the user.
 # We remove anything that occurs inside pandas' library from the traceback
@@ -13,8 +14,7 @@ ft.exclude_directory_from_traceback(pandas_dir)
 #  adding disabling chained traceback when all the information
 #  given comes from excluded files or directories
 
-
-@ft.info_specific.register(KeyError)
+@parser.add
 def loc_does_not_exist(error, frame, traceback_data):
     # Did we try to use loc?
     m = re.search(r"(.*)\.loc", traceback_data.bad_line)
