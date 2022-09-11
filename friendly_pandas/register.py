@@ -3,8 +3,6 @@ import re
 import pandas as pd
 import friendly_traceback as ft
 
-# from friendly_traceback import info_specific
-
 # We want to focus on the code entered by the user.
 # We remove anything that occurs inside pandas' library from the traceback
 pandas_init = pathlib.Path(pd.__file__)
@@ -46,8 +44,4 @@ def loc_does_not_exist(error, frame, traceback_data):
                     "The valid values are: `{rows}`.\n"
                 ).format(rows=ft.utils.list_to_string(list(target.index.values)))
             }
-            # Just for diagnostic; usually we would not include this.
-            # Question: wouldn't we want to have a message about this not being
-            # a known row instead^
-            print(f"Did not find {key} in {columns}")
     return {}
