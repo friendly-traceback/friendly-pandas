@@ -15,7 +15,7 @@ ft.exclude_directory_from_traceback(pandas_dir)
 #  given comes from excluded files or directories
 
 
-@parser.add
+@parser.insert  # ensure that this is used before the default from friendly_traceback
 def loc_does_not_exist(error, frame, traceback_data):
     # Did we try to use loc?
     m = re.search(r"(.*)\.loc", traceback_data.bad_line)
