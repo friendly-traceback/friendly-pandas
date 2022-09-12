@@ -57,7 +57,7 @@ def loc_does_not_exist(error, frame, traceback_data):
                 cause = f"`{df}` has some keys similar to `{key!r}` including:\n`{names}`.\n"
                 return {"cause": cause, "suggest": hint}
 
-            rows = ", ".join(rows) # Remove the brackets surrounding list items
+            rows = ft.utils.list_to_string(rows) # Remove the brackets surrounding list items
             return {
                 "cause": (
                     f"You tried to retrieve an unknown row. The valid values are:\n`{rows}`.\n"
