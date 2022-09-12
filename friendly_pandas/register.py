@@ -10,9 +10,10 @@ pandas_init = pathlib.Path(pd.__file__)
 pandas_dir = pandas_init.parents[0]
 ft.exclude_directory_from_traceback(pandas_dir)
 
-# TODO: Improve friendly_traceback by
-#  adding disabling chained traceback when all the information
-#  given comes from excluded files or directories
+# Disabling showing chained exceptions in normal "friendly" tracebacks
+# as these likely come from code all inside pandas library.
+
+ft.config.session.include_chained_exception = False
 
 
 @parser.insert  # ensure that this is used before the default from friendly_traceback
@@ -38,7 +39,7 @@ def loc_does_not_exist(error, frame, traceback_data):
             # friendly can use to add syntax coloring.
             return {
                 "cause": "You tried to use loc to retrieve a column, but it takes a row or a row selector.\n",
-                "suggest": f'To retrieve a column, just use square brackets: `{df}["{key}`\n"]',
+                "suggest": f'To retrieve a column, just use square brackets: `{df}["{key}"]`\n',
             }
         else:
             rows = list(target.index.values)
