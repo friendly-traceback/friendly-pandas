@@ -26,16 +26,17 @@ def loc_does_not_exist(error, frame, traceback_data):
 
     df = m.group(1)
     target = ft.info_variables.get_object_from_name(df, frame)
-    if target is None:
+    if target is None:  # This is very unlikely to happen
         return {}
 
     # Is it a data frame?
     if isinstance(target, pd.core.frame.DataFrame):
+        # in the error message, the key shown is a string representation of
+        # the actual key. This is the way to get the actual key.
         key = error.args[0]
         columns = list(target)
-        # Is this string a column?
         if key in columns:
-            # Note the use of backticks to surround code: this is markdown notation that
+            # Note the use of backticks below to surround code: this is markdown notation that
             # friendly can use to add syntax coloring.
             return {
                 "cause": "You tried to use loc to retrieve a column, but it takes a row or a row selector.\n",
@@ -43,21 +44,20 @@ def loc_does_not_exist(error, frame, traceback_data):
             }
         else:
             rows = list(target.index.values)
-            similar = ft.similar = ft.utils.get_similar_words(key, rows)
+            similar = ft.utils.get_similar_words(key, rows)
             if len(similar) == 1:
                 hint = ("Did you mean `{name}`?\n").format(name=similar[0])
                 cause = (
                     "`{name}` is a key of `{dict_}` which is similar to `{key}`.\n"
                 ).format(name=similar[0], dict_=df, key=repr(key))
                 return {"cause": cause, "suggest": hint}
-
             elif len(similar) > 1:
                 hint = f"Did you mean `{similar[0]}`?\n"
                 names = ", ".join(similar)
                 cause = f"`{df}` has some keys similar to `{key!r}` including:\n`{names}`.\n"
                 return {"cause": cause, "suggest": hint}
 
-            rows = ft.utils.list_to_string(rows) # Remove the brackets surrounding list items
+            rows = ", ".join(rows) # Remove the brackets surrounding list items
             return {
                 "cause": (
                     f"You tried to retrieve an unknown row. The valid values are:\n`{rows}`.\n"
