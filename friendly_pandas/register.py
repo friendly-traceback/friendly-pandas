@@ -16,7 +16,10 @@ ft.exclude_directory_from_traceback(pandas_dir)
 ft.config.session.include_chained_exception = False
 
 
-@parser.insert  # ensure that this is used before the default from friendly_traceback
+# The decorator parser.add_custom will ensure that the function loc_does_not_exist
+# is going to be used in an attempt to find the cause of the error before
+# any similar functions from friendly_traceback would be used to do the same.
+@parser.add_custom
 def loc_does_not_exist(error, frame, traceback_data):
     # Did we try to use loc?
     m = re.search(r"(.*)\.loc", traceback_data.bad_line)
