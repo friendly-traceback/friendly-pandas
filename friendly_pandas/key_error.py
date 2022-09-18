@@ -1,33 +1,25 @@
-import pathlib
 import re
 import pandas as pd
 import friendly_traceback as ft
-from friendly_traceback.runtime_errors.key_error import parser
+from friendly_traceback.message_parser import get_parser
 
-# We want to focus on the code entered by the user.
-# We remove anything that occurs inside pandas' library from the traceback
-pandas_init = pathlib.Path(pd.__file__)
-pandas_dir = pandas_init.parents[0]
-ft.exclude_directory_from_traceback(pandas_dir)
+parser = get_parser(KeyError)
 
-# Disabling showing chained exceptions in normal "friendly" tracebacks
-# as these likely come from code all inside pandas library.
-
-ft.config.session.include_chained_exception = False
-
-
-# The decorator parser.add_custom will ensure that the function loc_does_not_exist
+# The decorator parser.add will ensure that the function loc_does_not_exist
 # is going to be used in an attempt to find the cause of the error before
 # any similar functions from friendly_traceback would be used to do the same.
-@parser.add_custom
-def loc_does_not_exist(error, frame, traceback_data):
+@parser.add
+def loc_does_not_exist(message, traceback_data):
+    print(f"{message=}")
+    print(dir(traceback_data))
     # Did we try to use loc?
-    m = re.search(r"(.*)\.loc", traceback_data.bad_line)
-    if m is None:
+    match = re.search(r"(.*)\.loc", traceback_data.bad_line)
+    if match is None:
         # let the other registered handlers attempt to find an explanation
         return {}
 
-    df = m.group(1)
+    df = match[1]
+    frame = traceback_data.exception_frame
     target = ft.info_variables.get_object_from_name(df, frame)
     if target is None:  # This is very unlikely to happen
         return {}
@@ -36,7 +28,7 @@ def loc_does_not_exist(error, frame, traceback_data):
     if isinstance(target, pd.core.frame.DataFrame):
         # in the error message, the key shown is a string representation of
         # the actual key. This is the way to get the actual key.
-        key = error.args[0]
+        key = traceback_data.value.args[0]
         columns = list(target)
         if key in columns:
             # Note the use of backticks below to surround code: this is markdown notation that

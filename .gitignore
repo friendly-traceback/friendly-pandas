@@ -130,6 +130,7 @@ dmypy.json
 
 # local test files
 ignore*.py
+ae.bat
 
 # pycharm projects
 .idea/

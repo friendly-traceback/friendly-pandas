@@ -1,6 +1,6 @@
 import pandas as pd
 import friendly_traceback as ft
-from friendly_pandas import register
+from friendly_pandas import key_error
 
 df = pd.DataFrame([[1, 2, 3], [1, 4, 9]],
                   index=["number", "square"],
