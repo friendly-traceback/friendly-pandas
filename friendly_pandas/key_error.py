@@ -10,8 +10,6 @@ parser = get_parser(KeyError)
 # any similar functions from friendly_traceback would be used to do the same.
 @parser.add
 def loc_does_not_exist(message, traceback_data):
-    print(f"{message=}")
-    print(dir(traceback_data))
     # Did we try to use loc?
     match = re.search(r"(.*)\.loc", traceback_data.bad_line)
     if match is None:
@@ -33,9 +31,10 @@ def loc_does_not_exist(message, traceback_data):
         if key in columns:
             # Note the use of backticks below to surround code: this is markdown notation that
             # friendly can use to add syntax coloring.
+            hint = f'To retrieve a column, just use square brackets: `{df}["{key}"]`.\n'
             return {
-                "cause": "You tried to use loc to retrieve a column, but it takes a row or a row selector.\n",
-                "suggest": f'To retrieve a column, just use square brackets: `{df}["{key}"]`\n',
+                "cause": "You tried to use loc to retrieve a column, but it takes a row or a row selector.\n" + hint,
+                "suggest": hint
             }
         else:
             rows = list(target.index.values)
