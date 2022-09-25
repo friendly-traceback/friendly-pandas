@@ -1,6 +1,7 @@
-__version__ = "0.0.9"
+__version__ = "0.1.0"
 
 import pathlib
+import warnings
 
 import pandas
 from friendly_traceback import exclude_directory_from_traceback, config
@@ -8,8 +9,10 @@ from friendly_traceback import exclude_directory_from_traceback, config
 # The following import will automatically add relevant parsers to
 # those known by friendly_traceback
 from . import key_error
+from . import pandas_warnings
+warnings.simplefilter("always")
 
-print(f"friendly_pandas version {__version__}: pandas-specific exception handlers added.")
+print(f"friendly_pandas version {__version__}")
 
 # We want to focus on the code entered by the user.
 # We remove anything that occurs inside pandas' library from the traceback
