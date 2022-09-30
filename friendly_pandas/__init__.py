@@ -1,7 +1,6 @@
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 import pathlib
-import warnings
 
 import pandas
 from friendly_traceback import exclude_directory_from_traceback, config
@@ -10,7 +9,6 @@ from friendly_traceback import exclude_directory_from_traceback, config
 # those known by friendly_traceback
 from . import key_error
 from . import pandas_warnings
-warnings.simplefilter("always")
 
 print(f"friendly_pandas version {__version__}")
 
