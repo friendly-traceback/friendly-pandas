@@ -10,6 +10,8 @@ parser = get_parser(KeyError)
 # any similar functions from friendly_traceback would be used to do the same.
 @parser.add
 def loc_does_not_exist(message, traceback_data):
+    # The message for a key error is not useful as it contains only
+    # the unknown key.
     # Did we try to use loc?
     match = re.search(r"(.*)\.loc", traceback_data.bad_line)
     if match is None:
@@ -24,7 +26,7 @@ def loc_does_not_exist(message, traceback_data):
 
     # Is it a data frame?
     if isinstance(target, pd.core.frame.DataFrame):
-        # in the error message, the key shown is a string representation of
+        # In the error message, the key shown is a string representation of
         # the actual key. This is the way to get the actual key.
         key = traceback_data.value.args[0]
         columns = list(target)
