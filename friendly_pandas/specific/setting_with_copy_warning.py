@@ -1,9 +1,12 @@
 import re
+import types
 
+import pandas as pd
 from pandas.core.frame import DataFrame
 from pandas.errors import SettingWithCopyWarning
 from friendly_traceback.about_warnings import WarningInfo, get_warning_parser
-from friendly_traceback.typing_info import CauseInfo  # for type checking only
+from friendly_traceback.info_variables import get_object_from_name
+from friendly_traceback.typing_info import CauseInfo
 
 parser = get_warning_parser(SettingWithCopyWarning)
 
@@ -11,22 +14,59 @@ parser = get_warning_parser(SettingWithCopyWarning)
 @parser.add
 def setting_with_copy_warning(message: str, warning_data: WarningInfo) -> CauseInfo:
     statement = re.sub(r"\s+", "", warning_data.problem_statement)
-    pattern = re.compile(
+    pattern_direct = re.compile(
         r"""
         (.*)  # dataframe name
-        \s*\.\s*loc    # .loc  including possible spaces
+        \s*\.\s*loc\s*    # .loc  including possible spaces
         \[(.*)\]       # first index
         \s*
         \[(.*)\]       # second index
         """,
         re.VERBOSE,
     )
-    match = re.match(pattern, statement)
-    if not match:
-        return {}
-    dataframe_name = match[1]
-    index_1 = match[2]
-    index_2 = match[3]
+    pattern_indirect_1 = re.compile(
+        r"""
+        (.*)  # series name
+        \s*\.\s*loc\s* # . loc including possible spaces
+        \[(.*)\]       # index
+        """,
+        re.VERBOSE,
+    )
+
+    pattern_indirect_2 = re.compile(
+        r"""
+        (.*)  # series name
+        \s* #including possible spaces
+        \[(.*)\]       # index
+        """,
+        re.VERBOSE,
+    )
+    match = re.match(pattern_direct, statement)
+    if match:
+        return direct_indexing(
+            statement, match[1].strip(), match[2].strip(), match[3].strip()
+        )
+    match_1 = re.match(pattern_indirect_1, statement)
+    match_2 = re.match(pattern_indirect_2, statement)
+    print(f"{match_1=}")
+    print(f"{match_2=}")
+    if match_1:
+        series = match_1[1].strip()
+        series_obj = get_object_from_name(series, warning_data.frame)
+        if isinstance(series_obj, pd.Series):
+            return indirect_indexing(series, match_1[2].strip(), warning_data.frame, loc_1 = ".loc")
+    elif match_2:
+        series = match_2[1].strip()
+        series_obj = get_object_from_name(series, warning_data.frame)
+        if isinstance(series_obj, pd.Series):
+            return indirect_indexing(series, match_2[2].strip(), warning_data.frame, loc_2 = ".loc")
+    return {}
+
+
+
+def direct_indexing(
+    statement: str, dataframe_name: str, index_1: str, index_2: str
+) -> CauseInfo:
     cause = (
         "You used direct chained indexing of a dataframe which made a copy\n"
         "of the original content of the dataframe. If you try to assign a value\n"
@@ -44,7 +84,53 @@ def setting_with_copy_warning(message: str, warning_data: WarningInfo) -> CauseI
     return {"cause": cause}
 
 
-def find_all_dataframes(frame):
+def indirect_indexing(
+    series_name: str,
+    index: str,
+    frame: types.FrameType,
+    loc_1: str = "",
+    loc_2: str = "",
+) -> CauseInfo:
+    names = find_all_dataframes(frame)
+    basic_cause = (
+        "I suspect that you used indirect chained indexing of a dataframe.\n"
+        "First, you likely created a series using something like:\n\n"
+        "    {series_name} = {dataframe_name}{loc_1}[...]\n\n"
+        "This made a copy of the data contained in the dataframe.\n"
+        "Next, you indexed that copy\n\n"
+        "    {series_name}{loc_2}[{index}]\n\n"
+        "This had no effect on the original dataframe.\n"
+        "If your goal is to modify the value of the original dataframe\n"
+        "try the following instead:\n\n"
+        "    {dataframe_name}.loc[..., {index}]\n"
+    )
+    if len(names) == 1:
+        cause = basic_cause.format(
+            series_name=series_name,
+            dataframe_name=names.pop(),
+            index=index,
+            loc_1=loc_1,
+            loc_2=loc_2,
+        )
+    else:
+        name = names.pop()
+        names.add(name)
+        intro = (
+            "In your code, you have the following dataframes: `{df}`\n"
+            "I do not know which one is causing the problem here;\n"
+            "I will use the name `{name}` as an example.\n\n"
+        ).format(df=names)
+        cause = intro + basic_cause.format(
+            series_name=series_name,
+            dataframe_name=name,
+            index=index,
+            loc_1=loc_1,
+            loc_2=loc_2,
+        )
+    return {"cause": cause}
+
+
+def find_all_dataframes(frame: types.FrameType) -> set:
     dataframes = {
         name for name in frame.f_locals if isinstance(frame.f_locals[name], DataFrame)
     }

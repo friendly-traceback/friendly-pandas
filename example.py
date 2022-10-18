@@ -11,7 +11,8 @@ df = pd.DataFrame([[10, 20, 30], [40, 50., 60]],
                   index=list("ab"),
                   columns=list("xyz"))
 
-df.loc[
-       "b"
-      ][
-       "x"] = 99
+series = df.loc["b"]
+series["x"] = 99
+
+series_1 = df["x"]
+series_1.loc["b"] = 99
