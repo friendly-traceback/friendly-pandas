@@ -7,7 +7,7 @@ from friendly_traceback import exclude_directory_from_traceback, config
 
 # The following import will automatically add relevant parsers to
 # those known by friendly_traceback
-from .specific import key_error
+from . import specific
 from . import generic
 
 print(f"friendly_pandas version {__version__}")
