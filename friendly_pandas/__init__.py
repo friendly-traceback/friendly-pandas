@@ -1,9 +1,13 @@
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 import pathlib
 
 import pandas
-from friendly_traceback import exclude_directory_from_traceback, config
+from friendly_traceback import (
+    exclude_directory_from_traceback,
+    config,
+    add_other_module_names_synonyms,
+)
 
 # The following import will automatically add relevant parsers to
 # those known by friendly_traceback
@@ -22,3 +26,7 @@ exclude_directory_from_traceback(_pandas_dir)
 # as these likely come from code all inside pandas library.
 # This will likely become the default in a future version.
 config.session.include_chained_exception = False
+
+add_other_module_names_synonyms(
+    {"pd": "pandas", "np": "numpy", "plt": "matplotlib.pyplot"}
+)
